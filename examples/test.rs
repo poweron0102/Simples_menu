@@ -14,12 +14,23 @@ async fn main() {
     //menu.elements.push(Rc::new(Text_label::new("Teste de legenda: ".to_string(), Vec2{ x: 30.0, y: 50.0 })));
 
 
-    let buttan1 = menu.add_element(Button::new("Buttom 1".to_string(), Vec2{ x: 0.0, y: 420.0 }, None));
+    let buttan1 = menu.add_element(Button::new("Buttom 1".to_string(), Vec2{ x: 0.0, y: 120.0 }, None));
+    let buttan2 = menu.add_element(Button::new("Buttom 2".to_string(), Vec2{ x: 0.0, y: 0.0 }, None));
     //let label1 = menu.add_element(Text_label::new("Teste de legenda: ".to_string(), Vec2{ x: 30.0, y: 50.0 }));
     loop {
         menu.update();
 
         //label1.edit().title.name = get_fps().to_string();
+        if is_key_released(KeyCode::O) {
+            drop(buttan1);
+            loop {
+                menu.update();
+                menu.draw();
+                next_frame().await
+            }
+        }
+
+
         buttan1.edit().position.x += 0.1;
 
         menu.draw();

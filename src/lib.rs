@@ -60,6 +60,9 @@ pub struct Button {
     pub position: Vec2,
     pub size: Vec2,
 
+    pub is_pressed: bool,
+    pub action: Option<fn()>,
+
     visible_color: Color,
     // other properties specific to buttons
 }
@@ -73,16 +76,19 @@ impl Button {
         };
         Button{
             size: size.unwrap_or(label_title.size() + Vec2{ x: 10.0, y: 10.0 }),
+            is_pressed: false,
             title: label_title,
             visible: true,
             color: GRAY,
             visible_color: GRAY,
             position: position,
+            action: Some(|| println!("Button has been pressed")),
         }
     }
 }
 impl MenuElement for Button {
     fn update(&mut self, menu_position: Vec2) {
+        self.is_pressed = false;
         self.visible_color = self.color;
 
         let button_position = self.position + menu_position;
@@ -93,20 +99,26 @@ impl MenuElement for Button {
             h: self.size.y,
         };
 
-        if button_rect.contains(mouse_position_local()) {
-            //self.visible_color = GREEN;
+        let mouse_posi:Vec2;
+        {
+            let mouse_flot = mouse_position();
+            mouse_posi = Vec2{ x: mouse_flot.0, y: mouse_flot.1 }
+        }
+        if button_rect.contains(mouse_posi) {
             self.visible_color = Color{
-                r: self.color.r + 10.0,
-                g: self.color.g + 10.0,
-                b: self.color.b + 10.0,
+                r: self.color.r - 0.1,
+                g: self.color.g - 0.1,
+                b: self.color.b - 0.1,
                 a: self.color.a,
             };
 
             if is_mouse_button_pressed(MouseButton::Left) {
-                println!("{} has been pressed", self.title.name)
+                if let Some(action) = self.action {
+                    action();
+                }
             }
             if is_mouse_button_down(MouseButton::Left) {
-                println!("{} is down", self.title.name)
+                self.is_pressed = true;
             }
         }
     }
@@ -287,9 +299,11 @@ impl Menu {
             let delet = self.elements.remove(index);
         }
 
+        let (menu_rect, menu_tile_rect) = self.calculate_menu_rect();
         for element_ref in self.elements.iter() {
             let mut element = element_ref.edit();
-            element.update(vec2(0.0,0.0))
+
+            element.update(vec2(menu_rect.x, menu_rect.y + menu_tile_rect.h))
         }
     }
 
@@ -298,39 +312,6 @@ impl Menu {
         if !self.visible {
             return;
         }
-
-        /*
-        // calculate the bounding rectangle for the menu
-        let mut menu_rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-        for element in &self.elements {
-            if let Some(rect) = element.read().bounding_rect() {
-                menu_rect = menu_rect.combine_with(rect);
-            }
-        }
-        let text_size = measure_text(&self.title.name, None, self.title.font_size as u16, 1.0);
-        let menu_title_rect = Rect{
-            x: menu_rect.x + menu_rect.w / 2.0,
-            y: menu_rect.y,
-            w: text_size.width,
-            h: text_size.height,
-        };
-        menu_rect = menu_rect.combine_with(menu_title_rect);
-
-        if let Some(size) = self.size {
-            menu_rect = Rect{
-                x: menu_rect.x,
-                y: menu_rect.y,
-                w: size.x,
-                h: size.y,
-            };
-        }
-        menu_rect = Rect{
-            x: menu_rect.x + self.position.x,
-            y: menu_rect.y + self.position.y,
-            w: menu_rect.w,
-            h: menu_rect.h,
-        };
-         */
         let (menu_rect, menu_title_rect) = self.calculate_menu_rect();
 
         let menu_bg_rect = Rect{
