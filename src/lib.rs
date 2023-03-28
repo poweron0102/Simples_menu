@@ -49,7 +49,6 @@ impl<T: MenuElement + ?Sized> Element<T> {
             data: self.data.clone(),
         }
     }
-
 }
 
 #[derive(BoundingRect)]
@@ -61,6 +60,8 @@ pub struct Button {
     pub size: Vec2,
 
     pub is_pressed: bool,
+
+    pub has_been_pressed: bool,
     pub action: Option<fn()>,
 
     visible_color: Color,
@@ -83,12 +84,14 @@ impl Button {
             visible_color: GRAY,
             position: position,
             action: Some(|| println!("Button has been pressed")),
+            has_been_pressed: false,
         }
     }
 }
 impl MenuElement for Button {
     fn update(&mut self, menu_position: Vec2) {
         self.is_pressed = false;
+        self.has_been_pressed = false;
         self.visible_color = self.color;
 
         let button_position = self.position + menu_position;
@@ -113,6 +116,7 @@ impl MenuElement for Button {
             };
 
             if is_mouse_button_pressed(MouseButton::Left) {
+                self.has_been_pressed = true;
                 if let Some(action) = self.action {
                     action();
                 }
@@ -146,22 +150,22 @@ impl MenuElement for Button {
 }
 
 #[derive(BoundingRect)]
-pub struct Text_label {
+pub struct TextLabel {
     pub title: Title,
     pub visible: bool,
     pub position: Vec2,
 
     size: Vec2,
 }
-impl Text_label {
+impl TextLabel {
     ///Create a new text label with the default arguments.
-    pub fn new(lable: String, position: Vec2) -> Text_label {
+    pub fn new(lable: String, position: Vec2) -> TextLabel {
         let label_title = Title {
             name: lable,
             color: WHITE,
             font_size: 13.0,
         };
-        Text_label{
+        TextLabel {
             size: label_title.size(),
             title: label_title,
             visible: true,
@@ -169,9 +173,9 @@ impl Text_label {
         }
     }
 }
-impl MenuElement for Text_label {
+impl MenuElement for TextLabel {
     fn update(&mut self, menu_position: Vec2) {
-        todo!()
+        self.size = self.title.size();
     }
 
     fn draw(&self, start_position: Vec2) {
@@ -200,7 +204,6 @@ pub struct Menu {
 
     visible_color: Color,
 }
-
 impl Menu {
     ///Create a new menu with the default arguments.
     pub fn new(name: String, position: Vec2) -> Menu {
@@ -232,7 +235,6 @@ impl Menu {
 
         element
     }
-
 
     fn calculate_menu_rect(&self) -> (Rect, Rect) {
         // Calculate the bounding rectangle for the menu.
@@ -288,14 +290,16 @@ impl Menu {
     }
 
     pub fn update(&mut self) {
+        self.visible_color = self.color;
+
         //Remove elements out of scope
-        let mut index_to_delet: Vec<usize> = vec![];
+        let mut index_to_delete: Vec<usize> = vec![];
         for element_ref in &self.elements {
             if Rc::strong_count(&element_ref.data) <= 1 {
-                index_to_delet.push(element_ref.id);
+                index_to_delete.push(element_ref.id);
             }
         }
-        for index in index_to_delet {
+        for index in index_to_delete {
             let delet = self.elements.remove(index);
         }
 
@@ -332,5 +336,55 @@ impl Menu {
         for element in &self.elements {
             element.read().draw(Vec2{ x: menu_rect.x, y: menu_rect.y + menu_title_rect.h});
         }
+    }
+}
+impl MenuElement for Menu {
+    fn update(&mut self, menu_position: Vec2) {
+        self.update();
+    }
+
+    fn draw(&self, menu_position: Vec2) {
+        if !self.visible {
+            return;
+        }
+        let (mut menu_rect, mut menu_title_rect) = self.calculate_menu_rect();
+        menu_rect = Rect{
+            x: menu_rect.x + menu_position.x,
+            y: menu_rect.y + menu_position.y,
+            w: menu_rect.w,
+            h: menu_rect.h,
+        };
+        menu_title_rect = Rect{
+            x: menu_title_rect.x + menu_position.x,
+            y: menu_title_rect.y + menu_position.y,
+            w: menu_title_rect.w,
+            h: menu_title_rect.h,
+        };
+
+        let menu_bg_rect = Rect{
+            x: menu_rect.x - self.edge,
+            y: menu_rect.y - self.edge,
+            w: menu_rect.w + (self.edge * 2.0),
+            h: menu_rect.h + (self.edge * 2.0) + menu_title_rect.h,
+        };
+
+        // draw the menu background
+        draw_rectangle(menu_bg_rect.x, menu_bg_rect.y, menu_bg_rect.w, menu_bg_rect.h, self.visible_color);
+
+        // draw the menu name
+        let name_position = vec2(menu_rect.x + (menu_rect.w - menu_title_rect.w) / 2.0, menu_rect.y );
+        draw_text(&self.title.name, name_position.x, name_position.y, self.title.font_size, self.title.color);
+
+        // draw the menu elements
+        for element in &self.elements {
+            element.read().draw(Vec2{ x: menu_rect.x, y: menu_rect.y + menu_title_rect.h});
+        }
+    }
+
+    fn bounding_rect(&self) -> Option<Rect> {
+        if !self.visible {return None}
+        let (menu_rect, text_rect) = self.calculate_menu_rect();
+
+        Some(menu_rect)
     }
 }
