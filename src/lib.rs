@@ -166,7 +166,7 @@ impl CheckBox {
             position,
             size,
             is_checked: false,
-            color: LIGHTGRAY,
+            color: GRAY,
 
             visible_color: LIGHTGRAY,
         }

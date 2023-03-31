@@ -16,7 +16,7 @@ async fn main() {
     //menu2.color = BLUE;
     let buttan3 = menu2.add_element(Button::new("Buttom 3".to_string(), Vec2{ x: 0.0, y: 30.0 }, None));
     let buttan4 = menu2.add_element(Button::new("Buttom 4".to_string(), Vec2{ x: 20.0, y: 0.0 }, None));
-    let check_box = menu2.add_element(CheckBox::new(Vec2{ x: 20.0, y: 50.0 }, Vec2{ x: 10.0, y: 10.0 }));
+    let check_box = menu2.add_element(CheckBox::new(Vec2{ x: 20.0, y: 50.0 }, Vec2{ x: 20.0, y: 20.0 }));
     loop {
         menu1.update();
         menu2.update();
@@ -33,8 +33,7 @@ async fn main() {
             }
         }
 
-
-        buttan1.edit().position.x += 0.1;
+        if check_box.read().is_checked {buttan1.edit().position.x += 0.1}
 
         menu2.draw();
         menu1.draw();
