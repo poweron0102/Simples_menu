@@ -2,7 +2,7 @@ use std::borrow::BorrowMut;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use macroquad::prelude::*;
-use Simples_menu::{Button, Menu, TextLabel};
+use Simples_menu::{Button, CheckBox, Menu, TextLabel};
 
 #[macroquad::main("Test")]
 async fn main() {
@@ -16,6 +16,7 @@ async fn main() {
     //menu2.color = BLUE;
     let buttan3 = menu2.add_element(Button::new("Buttom 3".to_string(), Vec2{ x: 0.0, y: 30.0 }, None));
     let buttan4 = menu2.add_element(Button::new("Buttom 4".to_string(), Vec2{ x: 20.0, y: 0.0 }, None));
+    let check_box = menu2.add_element(CheckBox::new(Vec2{ x: 20.0, y: 50.0 }, Vec2{ x: 10.0, y: 10.0 }));
     loop {
         menu1.update();
         menu2.update();

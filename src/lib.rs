@@ -150,6 +150,92 @@ impl MenuElement for Button {
 }
 
 #[derive(BoundingRect)]
+pub struct CheckBox {
+    pub visible: bool,
+    pub position: Vec2,
+    pub size: Vec2,
+    pub is_checked: bool,
+    pub color: Color,
+
+    visible_color: Color,
+}
+impl CheckBox {
+    pub fn new(position: Vec2, size: Vec2) -> CheckBox {
+        CheckBox{
+            visible: true,
+            position,
+            size,
+            is_checked: false,
+            color: LIGHTGRAY,
+
+            visible_color: LIGHTGRAY,
+        }
+    }
+}
+impl MenuElement for CheckBox {
+    fn update(&mut self, menu_position: Vec2) {
+        self.visible_color = self.color;
+        let position = self.position + menu_position;
+        let check_box_rect = Rect{
+            x: position.x,
+            y: position.y,
+            w: self.size.x,
+            h: self.size.y,
+        };
+
+        let mouse_posi:Vec2;
+        {
+            let mouse_flot = mouse_position();
+            mouse_posi = Vec2{ x: mouse_flot.0, y: mouse_flot.1 }
+        }
+        if check_box_rect.contains(mouse_posi) {
+            self.visible_color = Color {
+                r: self.color.r - 0.1,
+                g: self.color.g - 0.1,
+                b: self.color.b - 0.1,
+                a: self.color.a,
+            };
+
+            if is_mouse_button_pressed(MouseButton::Left) {
+                self.is_checked = !self.is_checked;
+            }
+        }
+    }
+
+    fn draw(&self, menu_position: Vec2) {
+        let position = self.position + menu_position;
+        let check_box_rect = Rect{
+            x: position.x,
+            y: position.y,
+            w: self.size.x,
+            h: self.size.y,
+        };
+        let center = check_box_rect.center();
+        let radius = {
+            if self.size.x < self.size.y {
+                self.size.x
+            }else {
+                self.size.y
+            }
+        };
+
+        draw_rectangle(position.x,
+                       position.y,
+                       self.size.x,
+                       self.size.y,
+                       self.visible_color
+        );
+        if self.is_checked {
+            draw_circle(center.x, center.y, (radius / 2.0) - (radius / 10.0), GREEN)
+        }
+    }
+
+    fn bounding_rect(&self) -> Option<Rect> {
+        self.bounding_rect()
+    }
+}
+
+#[derive(BoundingRect)]
 pub struct TextLabel {
     pub title: Title,
     pub visible: bool,
