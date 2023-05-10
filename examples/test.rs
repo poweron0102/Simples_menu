@@ -1,22 +1,20 @@
-use std::borrow::BorrowMut;
-use std::ops::{Deref, DerefMut};
-use std::rc::Rc;
 use macroquad::prelude::*;
 use Simples_menu::{Button, CheckBox, Menu, TextLabel};
+use Simples_menu::PositionType::{Center, TopLeft};
 
 #[macroquad::main("Test")]
 async fn main() {
     let mut menu1 = Menu::new("Menu 1".to_string(), Vec2{ x: 50.0, y: 50.0 });
     //menu1.size = Some(Vec2 { x: 220.0, y: 80.0 });
-    let buttan1 = menu1.add_element(Button::new("Buttom 1".to_string(), Vec2{ x: 0.0, y: 120.0 }, None));
-    let buttan2 = menu1.add_element(Button::new("Buttom 2".to_string(), Vec2{ x: 0.0, y: 0.0 }, None));
-    let label1 = menu1.add_element(TextLabel::new("Teste de legenda: ".to_string(), Vec2{ x: 30.0, y: 50.0 }));
+    let buttan1 = menu1.add_element(Button::new("Buttom 1".to_string(),TopLeft,Vec2{ x: 0.0, y: 120.0 }, None));
+    let buttan2 = menu1.add_element(Button::new("Buttom 2".to_string(),TopLeft,Vec2{ x: 0.0, y: 0.0 }, None));
+    let label1 = menu1.add_element(TextLabel::new("Teste de legenda: ".to_string(), TopLeft, Vec2{ x: 30.0, y: 50.0 }));
 
     let mut menu2 = Menu::new("Menu 2".to_string(), Vec2{ x: 250.0, y: 260.0 });
     //menu2.color = BLUE;
-    let buttan3 = menu2.add_element(Button::new("Buttom 3".to_string(), Vec2{ x: 0.0, y: 30.0 }, None));
-    let buttan4 = menu2.add_element(Button::new("Buttom 4".to_string(), Vec2{ x: 20.0, y: 0.0 }, None));
-    let check_box = menu2.add_element(CheckBox::new(Vec2{ x: 20.0, y: 50.0 }, Vec2{ x: 20.0, y: 20.0 }));
+    let buttan3 = menu2.add_element(Button::new("Buttom 3".to_string(), TopLeft, Vec2{ x: 0.0, y: 30.0 }, None));
+    let buttan4 = menu2.add_element(Button::new("Buttom 4".to_string(), TopLeft,Vec2{ x: 20.0, y: 0.0 }, None));
+    let check_box = menu2.add_element(CheckBox::new(Center, Vec2{ x: 20.0, y: 90.0 }, Vec2{ x: 20.0, y: 20.0 }));
     loop {
         menu1.update();
         menu2.update();

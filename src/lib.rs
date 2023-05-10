@@ -4,6 +4,13 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use macroquad::prelude::*;
 use macros::*;
+use crate::PositionType::Center;
+
+#[derive(PartialEq)]
+pub enum PositionType {
+    TopLeft,
+    Center
+}
 
 pub trait MenuElement {
     fn update(&mut self, menu_position: Vec2);
@@ -69,20 +76,35 @@ pub struct Button {
 }
 impl Button {
     ///Create a new button with the default arguments.
-    pub fn new(lable: String, position: Vec2, size: Option<Vec2>) -> Button {
+    pub fn new(lable: String, position_type: PositionType, position: Vec2, size: Option<Vec2>) -> Button {
         let label_title = Title {
             name: lable,
             color: WHITE,
             font_size: 13.0,
         };
+
+        let real_size = size.unwrap_or(label_title.size() + Vec2{ x: 10.0, y: 10.0 });
+
+        let real_position: Vec2;
+        match position_type {
+            PositionType::TopLeft => {
+                real_position = position
+            }
+            PositionType::Center => {
+                real_position = Vec2{
+                    x: position.x - (real_size.x / 2.0),
+                    y: position.y - (real_size.y / 2.0),
+                }
+            }
+        }
         Button{
-            size: size.unwrap_or(label_title.size() + Vec2{ x: 10.0, y: 10.0 }),
+            size: real_size,
             is_pressed: false,
             title: label_title,
             visible: true,
             color: GRAY,
             visible_color: GRAY,
-            position: position,
+            position: real_position,
             action: Some(|| println!("Button has been pressed")),
             has_been_pressed: false,
         }
@@ -160,10 +182,22 @@ pub struct CheckBox {
     visible_color: Color,
 }
 impl CheckBox {
-    pub fn new(position: Vec2, size: Vec2) -> CheckBox {
+    pub fn new(position_type: PositionType, position: Vec2, size: Vec2) -> CheckBox {
+        let real_position: Vec2;
+        match position_type {
+            PositionType::TopLeft => {
+                real_position = position
+            }
+            PositionType::Center => {
+                real_position = Vec2{
+                    x: position.x - (size.x / 2.0),
+                    y: position.y - (size.y / 2.0),
+                }
+            }
+        }
         CheckBox{
             visible: true,
-            position,
+            position: real_position,
             size,
             is_checked: false,
             color: GRAY,
@@ -245,17 +279,30 @@ pub struct TextLabel {
 }
 impl TextLabel {
     ///Create a new text label with the default arguments.
-    pub fn new(lable: String, position: Vec2) -> TextLabel {
+    pub fn new(lable: String, position_type: PositionType, position: Vec2) -> TextLabel {
         let label_title = Title {
             name: lable,
             color: WHITE,
             font_size: 13.0,
         };
+        let size = label_title.size();
+        let real_position: Vec2;
+        match position_type {
+            PositionType::TopLeft => {
+                real_position = position
+            }
+            PositionType::Center => {
+                real_position = Vec2{
+                    x: position.x - (size.x / 2.0),
+                    y: position.y - (size.y / 2.0),
+                }
+            }
+        }
         TextLabel {
-            size: label_title.size(),
+            size,
             title: label_title,
             visible: true,
-            position: position,
+            position: real_position,
         }
     }
 }
