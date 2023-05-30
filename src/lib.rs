@@ -51,12 +51,12 @@ impl<T: MenuElement + ?Sized> Element<T> {
     }
 
 
-    pub fn clone(&self) -> Element<T> {
-        Element{
-            id: self.id,
-            data: self.data.clone(),
-        }
-    }
+    //pub fn clone(&self) -> Element<T> {
+    //    Element{
+    //        id: self.id,
+    //        data: self.data.clone(),
+    //    }
+    //}
 }
 
 #[derive(BoundingRect)]
@@ -70,7 +70,6 @@ pub struct Button {
     pub is_pressed: bool,
 
     pub has_been_pressed: bool,
-    pub action: Option<fn()>,
 
     visible_color: Color,
     // other properties specific to buttons
@@ -106,7 +105,6 @@ impl Button {
             color: GRAY,
             visible_color: GRAY,
             position: real_position,
-            action: Some(|| println!("Button has been pressed")),
             has_been_pressed: false,
         }
     }
@@ -140,9 +138,6 @@ impl MenuElement for Button {
 
             if is_mouse_button_pressed(MouseButton::Left) {
                 self.has_been_pressed = true;
-                if let Some(action) = self.action {
-                    action();
-                }
             }
             if is_mouse_button_down(MouseButton::Left) {
                 self.is_pressed = true;
@@ -171,6 +166,148 @@ impl MenuElement for Button {
         self.bounding_rect()
     }
 }
+
+
+//#[derive(BoundingRect)]
+pub struct SmartButton<T> {
+    pub title: Title,
+    pub visible: bool,
+    pub color: Color,
+    pub position: Vec2,
+    pub size: Vec2,
+
+    pub is_pressed: bool,
+
+    pub has_been_pressed: bool,
+    pub action: Option<fn(T)>,
+
+    visible_color: Color,
+    // other properties specific to buttons
+}
+impl<T> SmartButton<T> {
+    ///Create a new button with the default arguments.
+    pub fn new(lable: String, position_type: PositionType, position: Vec2, size: Option<Vec2>, action: fn(T)) -> SmartButton<T> {
+        let label_title = Title {
+            name: lable,
+            color: WHITE,
+            font_size: 13.0,
+        };
+
+        let real_size = size.unwrap_or(label_title.size() + Vec2{ x: 10.0, y: 10.0 });
+
+        let real_position: Vec2;
+        match position_type {
+            TopLeft => {
+                real_position = position
+            }
+            Center => {
+                real_position = Vec2{
+                    x: position.x - (real_size.x / 2.0),
+                    y: position.y - (real_size.y / 2.0),
+                }
+            }
+        }
+        SmartButton {
+            size: real_size,
+            is_pressed: false,
+            title: label_title,
+            visible: true,
+            color: GRAY,
+            visible_color: GRAY,
+            position: real_position,
+            action: Some(action),
+            has_been_pressed: false,
+        }
+    }
+
+
+    pub fn smart_action(&self, menu: Menu, data: T) {
+        // A little hack to get the rect of the button
+        let (menu_rect, menu_tile_rect) = menu.calculate_menu_rect();
+        let menu_position = vec2(menu_rect.x, menu_rect.y + menu_tile_rect.h);
+        let button_position = self.position + menu_position;
+        let button_rect = Rect{
+            x: button_position.x,
+            y: button_position.y,
+            w: self.size.x,
+            h: self.size.y,
+        };
+        let mouse_posi:Vec2;
+        {
+            let mouse_flot = mouse_position();
+            mouse_posi = Vec2{ x: mouse_flot.0, y: mouse_flot.1 }
+        }
+        // A little hack to get the rect of the button
+
+        if button_rect.contains(mouse_posi) {
+
+            if is_mouse_button_pressed(MouseButton::Left) {
+                if let Some(action) = self.action {
+                    action(data);
+                }
+            }
+        }
+    }
+}
+impl<T> MenuElement for SmartButton<T> {
+    fn update(&mut self, menu_position: Vec2) {
+        self.is_pressed = false;
+        self.has_been_pressed = false;
+        self.visible_color = self.color;
+
+        let button_position = self.position + menu_position;
+        let button_rect = Rect{
+            x: button_position.x,
+            y: button_position.y,
+            w: self.size.x,
+            h: self.size.y,
+        };
+
+        let mouse_posi:Vec2;
+        {
+            let mouse_flot = mouse_position();
+            mouse_posi = Vec2{ x: mouse_flot.0, y: mouse_flot.1 }
+        }
+        if button_rect.contains(mouse_posi) {
+            self.visible_color = Color{
+                r: self.color.r - 0.1,
+                g: self.color.g - 0.1,
+                b: self.color.b - 0.1,
+                a: self.color.a,
+            };
+
+            if is_mouse_button_pressed(MouseButton::Left) {
+                self.has_been_pressed = true;
+            }
+            if is_mouse_button_down(MouseButton::Left) {
+                self.is_pressed = true;
+            }
+        }
+    }
+
+
+    fn draw(&self, start_position: Vec2) {
+        let position = self.position + start_position;
+
+        draw_rectangle(position.x,
+                       position.y,
+                       self.size.x,
+                       self.size.y,
+                       self.visible_color);
+
+        let text_size = measure_text(&self.title.name, None, self.title.font_size as u16, 1.0);
+        draw_text(&self.title.name,
+                  position.x + (self.size.x - text_size.width) / 2.0,
+                  position.y + (self.size.y + text_size.height) / 2.0,
+                  self.title.font_size,
+                  self.title.color)
+    }
+
+    fn bounding_rect(&self) -> Option<Rect>{
+        self.bounding_rect()
+    }
+}
+
 
 #[derive(BoundingRect)]
 pub struct CheckBox {
