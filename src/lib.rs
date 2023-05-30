@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use macroquad::prelude::*;
 use macros::*;
-use crate::PositionType::Center;
+use crate::PositionType::*;
 
 #[derive(PartialEq)]
 pub enum PositionType {
@@ -18,6 +18,7 @@ pub trait MenuElement {
     fn bounding_rect(&self) -> Option<Rect>;
 }
 
+#[derive(Clone)]
 pub struct Title {
     pub name: String,
     pub color: Color,
@@ -87,10 +88,10 @@ impl Button {
 
         let real_position: Vec2;
         match position_type {
-            PositionType::TopLeft => {
+            TopLeft => {
                 real_position = position
             }
-            PositionType::Center => {
+            Center => {
                 real_position = Vec2{
                     x: position.x - (real_size.x / 2.0),
                     y: position.y - (real_size.y / 2.0),
@@ -326,6 +327,7 @@ impl MenuElement for TextLabel {
     }
 }
 
+//#[derive(Clone)]
 pub struct Menu {
     pub title: Title,
     pub visible: bool,
@@ -432,8 +434,8 @@ impl Menu {
                 index_to_delete.push(element_ref.id);
             }
         }
-        for index in index_to_delete {
-            let delet = self.elements.remove(index);
+        for (index, to_delet) in index_to_delete.iter().enumerate() {
+            let delet = self.elements.remove(*to_delet - index);
         }
 
         let (menu_rect, menu_tile_rect) = self.calculate_menu_rect();
